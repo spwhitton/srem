@@ -1,4 +1,5 @@
-{-# LANGUAGE DataKinds, TypeOperators #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Utility.Emacs ( getEmacsOutput
                      , parseEmacsOutput) where
@@ -7,11 +8,11 @@ import           Control.Applicative ((<$>))
 import           Control.Monad       (foldM, when)
 import qualified Control.SremConfig  as SremConfig
 import           Data.Maybe.Read
+import           Data.Modular
 import           System.Directory    (getHomeDirectory)
 import           System.Process      (readProcess)
 import           Text.Regex.Posix    ((=~))
 import           Types.Reminder
-import Data.Modular
 
 parseEmacsOutput :: String -> [Reminder]
 parseEmacsOutput = foldr step [] . drop 2 . lines
