@@ -1,13 +1,17 @@
+{-# LANGUAGE DataKinds, TypeOperators #-}
+
 module Utility.Emacs ( getEmacsOutput
                      , parseEmacsOutput) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad       (when, foldM)
+import           Control.Monad       (foldM, when)
+import qualified Control.SremConfig  as SremConfig
 import           Data.Maybe.Read
 import           System.Directory    (getHomeDirectory)
 import           System.Process      (readProcess)
 import           Text.Regex.Posix    ((=~))
 import           Types.Reminder
+import Data.Modular
 
 parseEmacsOutput :: String -> [Reminder]
 parseEmacsOutput = foldr step [] . drop 2 . lines
@@ -29,18 +33,14 @@ parseLine line         = do
     lineMatchStrings = line =~ apptRegexp :: [[String]]
 
 staggeredReminders   :: Reminder -> Maybe [Reminder]
-staggeredReminders r = undefined
-
--- staggeredReminders :: Int -> Int -> String -> [Reminder]
--- staggeredReminders hour mins text = foldl' step [] [60, 15, 0]
---   where step rems diff = let hour'
---                                | diff > mins = hour - 1
---                                | otherwise = hour
---                              -- could do with addition mod 60
---                              mins'
---                                | mins >= diff = mins - diff
---                                | otherwise = 60 + (mins - diff)
---                          in rems ++ [Reminder hour' mins' text]
+staggeredReminders r = sequence $ foldr step [] SremConfig.intervals
+  where
+    step minsBefore rems =
+        makeReminder (h minsBefore) (m minsBefore) (getReminderText r) : rems
+    h m = if   m > getReminderMinute r
+          then getReminderHour r - 1
+          else getReminderHour r
+    m m = unMod $ (toMod (getReminderMinute r) :: Int/60) - (toMod m :: Int/60)
 
 getEmacsOutput :: IO String
 getEmacsOutput = do
