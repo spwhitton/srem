@@ -10,6 +10,7 @@ import qualified Control.SremConfig  as SremConfig
 import           Data.Maybe.Read
 import           Data.Modular
 import           System.Directory    (getHomeDirectory)
+import           System.FilePath     ((</>))
 import           System.Process      (readProcess)
 import           Text.Regex.Posix    ((=~))
 import           Types.Reminder
@@ -50,6 +51,6 @@ getEmacsOutput = do
 
 makeEmacsArgs      :: String -> [String]
 makeEmacsArgs home = [ "-batch"
-                     , "-l", home ++ "/.emacs.d/init.el"
+                     , "-l", home </> ".emacs.d" </> "init.el"
                      , "-eval", "(setq org-agenda-sticky nil)"
                      , "-eval", "(org-batch-agenda \"D\")" ]
