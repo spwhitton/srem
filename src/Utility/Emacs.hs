@@ -37,7 +37,7 @@ staggeredReminders   :: Reminder -> Maybe [Reminder]
 staggeredReminders r = sequence $ foldr step [] SremConfig.intervals
   where
     step minsBefore rems =
-        makeReminder (h minsBefore) (m minsBefore) (getReminderText r) : rems
+        makeReminder' (h minsBefore) (m minsBefore) (getReminderText r) : rems
     h m = if   m > getReminderMinute r
           then getReminderHour r - 1
           else getReminderHour r
