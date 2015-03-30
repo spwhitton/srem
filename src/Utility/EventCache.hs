@@ -8,7 +8,8 @@ import           Control.Applicative ((<$>))
 import           Control.Exception   (IOException, catch)
 import           Control.Monad       (filterM, forM_, when)
 import qualified Control.SremConfig  as SremConfig
-import           Data.List.Split     (splitOneOf)
+import           Data.List.Split     (splitOn, splitOneOf)
+import           Data.Maybe.Read
 import           Data.Time.Calendar
 import           Data.Time.Clock
 import           System.Directory    (doesFileExist, getDirectoryContents,
@@ -26,9 +27,9 @@ purgeOldEventCaches = do
     files <- (SremConfig.getCacheDirectory
              >>= getDirectoryContents)
              `catch` ((\_ -> return []) :: IOException -> IO [FilePath])
-    today <- todaysCacheFileDateString
+    today <- utctDay <$> getCurrentTime
     forM_ files $ \file ->
-        when (fileIsOldCache file) $ removeFile file
+        when (fileIsOldCache today file) $ removeFile file
 
 appendManualEventCache   :: Reminder -> Day -> IO ()
 appendManualEventCache r d = do
@@ -73,8 +74,21 @@ makeEventsCSV = undefined
 todaysCacheFileDateString :: IO String
 todaysCacheFileDateString = showGregorian . utctDay <$> getCurrentTime
 
-fileIsOldCache :: FilePath -> Bool
-fileIsOldCache = undefined
+fileIsOldCache            :: Day -> FilePath -> Bool
+fileIsOldCache today file = length splitFile == 3
+                            && splitFile !! 1 `elem` ["manual", "emacs"]
+                            && (maybe False (< today) $ readDay $ splitFile !! 2)
+                            && splitFile !! 3 == "csv"
+  where
+    splitFile             = splitOneOf "_." file
+
+readDay   :: String -> Maybe Day
+readDay s = do
+    yearString:monthString:dayString:[] <- return $ splitOn "-" s
+    year <- readMaybe yearString
+    month <- readMaybe monthString
+    day <- readMaybe dayString
+    return $ fromGregorian year month day
 
 -- getEventCacheLock :: IO [Reminder]
 -- getEventCacheLock = undefined
