@@ -85,7 +85,7 @@ fileIsOldCache today file = length splitFile == 3
 readDay   :: String -> Maybe Day
 readDay s = do
     yearString:monthString:dayString:[] <- return $ splitOn "-" s
-    year <- readMaybe yearString
+    year  <- readMaybe yearString
     month <- readMaybe monthString
-    day <- readMaybe dayString
+    day   <- readMaybe dayString
     return $ fromGregorian year month day
