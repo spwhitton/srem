@@ -22,7 +22,25 @@
 -}
 
 import           Control.Applicative ((<$>), (<*>))
+import           System.Environment  (getArgs)
 import           Types.Reminder
 import           Utility.EventCache
 
-main = undefined
+doCron :: IO ()
+doCron = undefined
+
+cmdLineReminder      :: [String] -> Maybe Reminder
+cmdLineReminder args = undefined
+
+appendUserReminder   :: Reminder -> IO ()
+appendUserReminder r = undefined
+
+main = do
+    args <- getArgs
+    if length args == 1 && head args == "--cron"
+        then doCron
+        else if length args == 1 && head args == "--emacs"
+                then refreshEmacsEventCache
+                else maybe
+                     (error "srem: invalid input")
+                     appendUserReminder $ cmdLineReminder args
