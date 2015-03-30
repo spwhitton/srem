@@ -69,7 +69,12 @@ parseEventsCSV :: String -> [Reminder]
 parseEventsCSV = undefined
 
 makeEventsCSV :: [Reminder] -> String
-makeEventsCSV = undefined
+makeEventsCSV = unlines . foldr ((:) . makeEventCSV) []
+
+makeEventCSV   :: Reminder -> String
+makeEventCSV r = (show . getReminderHour $ r) ++ "," ++
+                 (show . getReminderMinute $ r) ++ ","
+                 ++ getReminderText r
 
 todaysCacheFileDateString :: IO String
 todaysCacheFileDateString = showGregorian . utctDay <$> getCurrentTime
