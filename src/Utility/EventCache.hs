@@ -5,27 +5,40 @@ module EventCache ( purgeOldEventCaches
                   ) where
 
 import           Control.Applicative ((<$>))
+import           Control.Exception   (IOException, catch)
+import           Control.Monad       (filterM, forM_, when)
 import qualified Control.SremConfig  as SremConfig
+import           Data.List.Split     (splitOneOf)
 import           Data.Time.Calendar
 import           Data.Time.Clock
-import           System.Directory    (doesFileExist)
+import           System.Directory    (doesFileExist, getDirectoryContents,
+                                      removeFile)
 import           System.FilePath     ((</>))
 import           Types.Reminder
 import           Utility.Emacs
 
-purgeOldEventCaches :: IO [Reminder]
-purgeOldEventCaches = undefined
+-- TODO: lockfiles?
 
-appendManualEventCache :: IO ()
-appendManualEventCache = do
-    date <- cacheFileDateString
+-- #### User interface functions
+
+purgeOldEventCaches :: IO ()
+purgeOldEventCaches = do
+    files <- (SremConfig.getCacheDirectory
+             >>= getDirectoryContents)
+             `catch` ((\_ -> return []) :: IOException -> IO [FilePath])
+    today <- todaysCacheFileDateString
+    forM_ files $ \file ->
+        when (fileIsOldCache file) $ removeFile file
+
+appendManualEventCache   :: Reminder -> Day -> IO ()
+appendManualEventCache r d = do
     dir <- SremConfig.getCacheDirectory
-    let path = dir </> "manual_" ++ date ++ ".csv"
-    undefined
+    let path = dir </> "manual_" ++ (showGregorian d) ++ ".csv"
+    appendFile path $ makeEventsCSV [r]
 
 readEmacsEventCache :: IO [Reminder]
 readEmacsEventCache = do
-    date <- cacheFileDateString
+    date <- todaysCacheFileDateString
     dir <- SremConfig.getCacheDirectory
     let path = dir </> "emacs_" ++ date ++ ".csv"
     doesFileExist path >>= \alreadyThere ->
@@ -38,10 +51,15 @@ readEmacsEventCache = do
 
 readManualEventCache :: IO [Reminder]
 readManualEventCache = do
-    date <- cacheFileDateString
+    date <- todaysCacheFileDateString
     dir <- SremConfig.getCacheDirectory
     let path = dir </> "manual_" ++ date ++ ".csv"
-    undefined
+    doesFileExist path >>= \alreadyThere ->
+        if   alreadyThere
+        then readEventsCSV path
+        else return []
+
+-- #### Internal functions
 
 readEventsCSV :: FilePath -> IO [Reminder]
 readEventsCSV = undefined
@@ -52,8 +70,11 @@ parseEventsCSV = undefined
 makeEventsCSV :: [Reminder] -> String
 makeEventsCSV = undefined
 
-cacheFileDateString :: IO String
-cacheFileDateString = showGregorian . utctDay <$> getCurrentTime
+todaysCacheFileDateString :: IO String
+todaysCacheFileDateString = showGregorian . utctDay <$> getCurrentTime
+
+fileIsOldCache :: FilePath -> Bool
+fileIsOldCache = undefined
 
 -- getEventCacheLock :: IO [Reminder]
 -- getEventCacheLock = undefined
