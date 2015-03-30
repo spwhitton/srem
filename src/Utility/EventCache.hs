@@ -89,6 +89,3 @@ readDay s = do
     month <- readMaybe monthString
     day <- readMaybe dayString
     return $ fromGregorian year month day
-
--- getEventCacheLock :: IO [Reminder]
--- getEventCacheLock = undefined
