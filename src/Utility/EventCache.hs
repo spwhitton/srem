@@ -62,8 +62,8 @@ readManualEventCache = do
 
 -- #### Internal functions
 
-readEventsCSV :: FilePath -> IO [Reminder]
-readEventsCSV = undefined
+readEventsCSV   :: FilePath -> IO [Reminder]
+readEventsCSV f = readFile f >>= return . parseEventsCSV
 
 parseEventsCSV :: String -> [Reminder]
 parseEventsCSV = undefined
