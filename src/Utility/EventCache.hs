@@ -1,8 +1,8 @@
-module EventCache ( purgeOldEventCaches
-                  , appendManualEventCache
-                  , readEmacsEventCache
-                  , readManualEventCache
-                  ) where
+module Utility.EventCache ( purgeOldEventCaches
+                          , appendManualEventCache
+                          , readEmacsEventCache
+                          , readManualEventCache
+                          ) where
 
 import           Control.Applicative ((<$>))
 import           Control.Exception   (IOException, catch)
