@@ -23,6 +23,7 @@
 
 module Utility.EventCache ( purgeOldEventCaches
                           , appendManualEventCache
+                          , refreshEmacsEventCache
                           , readEmacsEventCache
                           , readManualEventCache
                           ) where
@@ -59,6 +60,14 @@ appendManualEventCache r d = do
     dir <- SremConfig.getCacheDirectory
     let path = dir </> "manual_" ++ (showGregorian d) ++ ".csv"
     appendFile path $ makeEventsCSV [r]
+
+refreshEmacsEventCache :: IO ()
+refreshEmacsEventCache = do
+    date <- todaysCacheFileDateString
+    dir <- SremConfig.getCacheDirectory
+    let path = dir </> "emacs_" ++ date ++ ".csv"
+    removeFile path
+    `catch` ((\_ -> return ()) :: IOException -> IO ())
 
 readEmacsEventCache :: IO [Reminder]
 readEmacsEventCache = do
