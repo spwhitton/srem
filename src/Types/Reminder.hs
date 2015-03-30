@@ -22,6 +22,8 @@
 -}
 
 module Types.Reminder ( Reminder
+                      , Hour
+                      , Minute
                       , makeReminder
                       , makeReminder'
                       , getReminderHour

@@ -22,25 +22,59 @@
 -}
 
 import           Control.Applicative ((<$>), (<*>))
+import           Data.Time.Calendar
+import           Data.Time.LocalTime
 import           System.Environment  (getArgs)
 import           Types.Reminder
 import           Utility.EventCache
 
 doCron :: IO ()
-doCron = undefined
+doCron = do
+    rems <- (++) <$> readEmacsEventCache <*> readManualEventCache
+    (h, m, _) <- localHMD
+    let nowRems = filter undefined rems
+    undefined
 
 cmdLineReminder      :: [String] -> Maybe Reminder
 cmdLineReminder args = undefined
 
 appendUserReminder   :: Reminder -> IO ()
-appendUserReminder r = undefined
+appendUserReminder r = do
+    (h, m, d) <- localHMD
+    -- A reminder doesn't know which day the event is on.  So we make
+    -- a dummy reminder for right now, and compare to the user's
+    -- input.  If their reminder is for a time that's already passed
+    -- today, we save the reminder into tomorrow's cache.
+
+    -- This makes it impossible to set a reminder for more than one
+    -- day into the future ('cmdLineReminder' is a pure function and
+    -- doesn't know what day it is now).  But the only way to express
+    -- a reminder for the day after tomorrow in srem's deliberately
+    -- simple command line input would be to write something like
+    -- @srem 1500m Go out to meet Tina@ which no user would want to
+    -- do.
+
+    -- The day after tomorrow is far enough in the future that an
+    -- appointment in Emacs Org-mode should be used instead of srem's
+    -- manual reminder input.
+    let dummyRem = makeReminder' h m (getReminderText r)
+    undefined
 
 main = do
     args <- getArgs
     if length args == 1 && head args == "--cron"
         then doCron
-        else if length args == 1 && head args == "--emacs"
+        else if length args == 1 && head args == "--refresh-emacs"
                 then refreshEmacsEventCache
                 else maybe
                      (error "srem: invalid input")
                      appendUserReminder $ cmdLineReminder args
+
+localHMD :: IO (Hour, Minute, Day)
+localHMD = do
+    localTime <- zonedTimeToLocalTime <$> getZonedTime
+    let time = localTimeOfDay localTime
+        d    = localDay localTime
+        h    = todHour time
+        m    = todMin  time
+    return (h, m, d)
