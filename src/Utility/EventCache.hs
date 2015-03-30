@@ -66,7 +66,16 @@ readEventsCSV   :: FilePath -> IO [Reminder]
 readEventsCSV f = readFile f >>= return . parseEventsCSV
 
 parseEventsCSV :: String -> [Reminder]
-parseEventsCSV = undefined
+parseEventsCSV = foldr step [] . lines
+  where
+    step r rs = maybe rs (: rs) $ parseEventCSV r
+
+parseEventCSV      :: String -> Maybe Reminder
+parseEventCSV line = do
+    hourString:minuteString:text:[] <- return $ splitOn "," line
+    hour <- readMaybe hourString
+    minute <- readMaybe minuteString
+    makeReminder' hour minute text
 
 makeEventsCSV :: [Reminder] -> String
 makeEventsCSV = unlines . foldr ((:) . makeEventCSV) []
