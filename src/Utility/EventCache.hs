@@ -35,7 +35,7 @@ import qualified Control.SremConfig  as SremConfig
 import           Data.List.Split     (splitOn, splitOneOf)
 import           Data.Maybe.Read
 import           Data.Time.Calendar
-import           Data.Time.Clock
+import           Data.Time.LocalTime
 import           System.Directory    (doesFileExist, getDirectoryContents,
                                       removeFile)
 import           System.FilePath     ((</>))
@@ -51,7 +51,7 @@ purgeOldEventCaches = do
     files <- (SremConfig.getCacheDirectory
              >>= getDirectoryContents)
              `catch` ((\_ -> return []) :: IOException -> IO [FilePath])
-    today <- utctDay <$> getCurrentTime
+    today <- localDay . zonedTimeToLocalTime <$> getZonedTime
     forM_ files $ \file ->
         when (fileIsOldCache today file) $ removeFile file
 
@@ -118,7 +118,8 @@ makeEventCSV r = (show . getReminderHour $ r) ++ "," ++
                  ++ getReminderText r
 
 todaysCacheFileDateString :: IO String
-todaysCacheFileDateString = showGregorian . utctDay <$> getCurrentTime
+todaysCacheFileDateString = showGregorian . localDay . zonedTimeToLocalTime
+                            <$> getZonedTime
 
 fileIsOldCache            :: Day -> FilePath -> Bool
 fileIsOldCache today file = length splitFile == 3
