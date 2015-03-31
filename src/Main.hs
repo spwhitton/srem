@@ -22,21 +22,34 @@
 -}
 
 import           Control.Applicative ((<$>), (<*>))
+import           Control.Monad       (mapM_)
+import           Data.List           (intercalate)
 import           Data.Time.Calendar
 import           Data.Time.LocalTime
 import           System.Environment  (getArgs)
+import           Text.Regex.Posix    ((=~))
 import           Types.Reminder
 import           Utility.EventCache
+import           Utility.Notify
 
-doCron :: IO ()
-doCron = do
-    rems <- (++) <$> readEmacsEventCache <*> readManualEventCache
+doCron                  :: IO ()
+doCron                  = do
+    rems      <- (++) <$> readEmacsEventCache <*> readManualEventCache
     (h, m, _) <- localHMD
-    let nowRems = filter undefined rems
-    undefined
+    let nowRemsFilter r = getReminderHour r == h
+                          && getReminderMinute r == m
+        nowRems         = filter nowRemsFilter rems
+    mapM_ sendNotification nowRems
 
-cmdLineReminder      :: [String] -> Maybe Reminder
-cmdLineReminder args = undefined
+cmdLineReminder                 :: [String] -> Maybe Reminder
+cmdLineReminder []              = Nothing
+cmdLineReminder [_]             = Nothing
+cmdLineReminder (exp:textParts) = do
+    undefined
+  where
+    text                        = intercalate " " textParts
+    relativeRegExp              = "[0-9]+[mh]"
+    absoluteRegExp              = "[0-9]{1,2}(:[0-9][0-9])?(am|pm)?"
 
 appendUserReminder   :: Reminder -> IO ()
 appendUserReminder r = do
@@ -58,7 +71,9 @@ appendUserReminder r = do
     -- appointment in Emacs Org-mode should be used instead of srem's
     -- manual reminder input.
     let dummyRem = makeReminder' h m (getReminderText r)
-    undefined
+    if maybe False (r <=) dummyRem
+        then appendManualEventCache r (addDays 1 d)
+        else appendManualEventCache r d
 
 main = do
     args <- getArgs
