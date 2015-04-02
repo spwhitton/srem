@@ -36,8 +36,8 @@ import           Data.List.Split     (splitOn, splitOneOf)
 import           Data.Maybe.Read
 import           Data.Time.Calendar
 import           Data.Time.LocalTime
-import           System.Directory    (doesFileExist, getDirectoryContents,
-                                      removeFile)
+import           System.Directory    (createDirectoryIfMissing, doesFileExist,
+                                      getDirectoryContents, removeFile)
 import           System.FilePath     ((</>))
 import           Types.Reminder
 import           Utility.Emacs
@@ -58,6 +58,7 @@ purgeOldEventCaches = do
 appendManualEventCache   :: Reminder -> Day -> IO ()
 appendManualEventCache r d = do
     dir <- SremConfig.getCacheDirectory
+    createDirectoryIfMissing True dir
     let path = dir </> "manual_" ++ (showGregorian d) ++ ".csv"
     appendFile path $ makeEventsCSV [r]
 
@@ -73,6 +74,7 @@ readEmacsEventCache :: IO [Reminder]
 readEmacsEventCache = do
     date <- todaysCacheFileDateString
     dir <- SremConfig.getCacheDirectory
+    createDirectoryIfMissing True dir
     let path = dir </> "emacs_" ++ date ++ ".csv"
     doesFileExist path >>= \alreadyThere ->
         if   alreadyThere
