@@ -24,10 +24,12 @@
 import           Control.Applicative ((<$>), (<*>))
 import           Control.Monad       (mapM_)
 import           Data.List           (intercalate)
+import           System.Environment  (getArgs)
+
 import           Data.Time.Calendar
 import           Data.Time.LocalTime
-import           System.Environment  (getArgs)
 import           Text.Regex.Posix    ((=~))
+
 import           Types.Reminder
 import           Utility.EventCache
 import           Utility.Notify
