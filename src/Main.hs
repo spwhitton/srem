@@ -73,11 +73,8 @@ main = do
         then doCron
         else if length args == 1 && head args == "--refresh-emacs"
                 then refreshEmacsEventCache
-                else do
-                 maybeParse <- cmdLineReminder args
-                 maybe
-                     (error "srem: invalid input")
-                     appendUserReminder maybeParse
+             else cmdLineReminder args
+                  >>= maybe (error "srem: invalid input") appendUserReminder
 
 localHMD :: IO (Hour, Minute, Day)
 localHMD = do
