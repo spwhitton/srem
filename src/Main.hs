@@ -27,7 +27,9 @@ import           Data.List           (intercalate)
 import           System.Environment  (getArgs)
 
 import           Data.Time.Calendar
+import           Data.Time.Format
 import           Data.Time.LocalTime
+import           System.Locale       (defaultTimeLocale)
 import           Text.Regex.Posix    ((=~))
 
 import           Types.Reminder
@@ -43,15 +45,31 @@ doCron                  = do
         nowRems         = filter nowRemsFilter rems
     mapM_ sendNotification nowRems
 
-cmdLineReminder                 :: [String] -> Maybe Reminder
-cmdLineReminder []              = Nothing
-cmdLineReminder [_]             = Nothing
-cmdLineReminder (exp:textParts) = do
-    undefined
+cmdLineReminder             :: [String] -> Maybe Reminder
+cmdLineReminder []          = Nothing
+cmdLineReminder [_]         = Nothing
+cmdLineReminder (exp:textParts)
+    | exp =~ relativeRegExp :: Bool = do
+                                          (h, m) <- parseRelativeTime exp -- TODO: add to current time
+                                          makeReminder h m text
+    | exp =~ absoluteRegExp :: Bool = do
+                                          (h, m) <- parseAbsoluteTime exp
+                                          makeReminder h m text
+    | otherwise             = Nothing
   where
-    text                        = intercalate " " textParts
-    relativeRegExp              = "[0-9]+[mh]"
-    absoluteRegExp              = "[0-9]{1,2}(:[0-9][0-9])?(am|pm)?"
+    text                    = intercalate " " textParts
+    relativeRegExp          = "[0-9]+[mh]"
+    absoluteRegExp          = "[0-9]{1,2}(:[0-9][0-9])?(am|pm)?"
+
+parseRelativeTime     :: String -> Maybe (Hour, Minute)
+parseRelativeTime exp = undefined
+
+parseAbsoluteTime     :: String -> Maybe (Hour, Minute)
+parseAbsoluteTime exp = let formatString = if last exp == 'm'
+                                           then "%k:%M%P"
+                                           else "%k:%M"
+                        in parseTime defaultTimeLocale formatString exp
+                           >>= \tod -> Just (todHour tod, todMin tod)
 
 appendUserReminder   :: Reminder -> IO ()
 appendUserReminder r = do
