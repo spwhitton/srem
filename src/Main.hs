@@ -65,9 +65,10 @@ parseRelativeTime     :: String -> Maybe (Hour, Minute)
 parseRelativeTime exp = undefined
 
 parseAbsoluteTime     :: String -> Maybe (Hour, Minute)
-parseAbsoluteTime exp = let formatString = if last exp == 'm'
-                                           then "%k:%M%P"
-                                           else "%k:%M"
+parseAbsoluteTime exp = let formatString =
+                                if last exp == 'm'
+                                then "%k:%M%P"
+                                else "%k:%M"
                         in parseTime defaultTimeLocale formatString exp
                            >>= \tod -> Just (todHour tod, todMin tod)
 
