@@ -21,21 +21,16 @@
 
 -}
 
-import           Control.Applicative ((<$>), (<*>))
-import           Control.Monad       (mapM_)
-import           Data.List           (intercalate)
-import           System.Environment  (getArgs)
+import           Control.Applicative    ((<$>), (<*>))
+import           Control.Monad          (mapM_)
+import           System.Environment     (getArgs)
 
-import           Data.List.Split     (oneOf, split)
 import           Data.Time.Calendar
-import           Data.Time.Format
 import           Data.Time.LocalTime
-import           Data.Tuple.Sequence (sequenceT)
-import           System.Locale       (defaultTimeLocale)
-import           Text.Regex.Posix    ((=~))
 
-import           Data.Maybe.Read
 import           Types.Reminder
+import           Types.Reminder.CmdLine
+import           Utility.CmdLineRem     (cmdLineReminder)
 import           Utility.EventCache
 import           Utility.Notify
 
@@ -47,38 +42,6 @@ doCron                  = do
                           && getReminderMinute r == m
         nowRems         = filter nowRemsFilter rems
     mapM_ sendNotification nowRems
-
-cmdLineReminder             :: [String] -> Maybe Reminder
-cmdLineReminder []          = Nothing
-cmdLineReminder [_]         = Nothing
-cmdLineReminder (exp:textParts)
-    | exp =~ relativeRegExp :: Bool = do
-                                          (h, m) <- parseRelativeTime exp -- TODO: add to current time
-                                          makeReminder h m text
-    | exp =~ absoluteRegExp :: Bool = do
-                                          (h, m) <- parseAbsoluteTime exp
-                                          makeReminder h m text
-    | otherwise             = Nothing
-  where
-    text                    = intercalate " " textParts
-    relativeRegExp          = "[0-9mh]+[mh]"
-    absoluteRegExp          = "[0-9]{1,2}(:[0-9][0-9])?(am|pm)?"
-
-parseRelativeTime :: String -> Maybe (Hour, Minute)
-parseRelativeTime exp =
-    case (split . oneOf) "mh" exp of
-        [h, "h", m, "m", ""] -> sequenceT (readMaybe h, readMaybe m)
-        [h, "h", ""]         -> sequenceT (readMaybe h, Just 0)
-        [m, "m", ""]         -> sequenceT (Just 0,      readMaybe m)
-        _                    -> Nothing
-
-parseAbsoluteTime     :: String -> Maybe (Hour, Minute)
-parseAbsoluteTime exp = let formatString =
-                                if last exp == 'm'
-                                then "%k:%M%P"
-                                else "%k:%M"
-                        in parseTime defaultTimeLocale formatString exp
-                           >>= \tod -> Just (todHour tod, todMin tod)
 
 appendUserReminder   :: Reminder -> IO ()
 appendUserReminder r = do
