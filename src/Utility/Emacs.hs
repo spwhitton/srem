@@ -34,7 +34,7 @@ import           Data.Maybe.Read
 import           Data.Modular
 import           System.Directory    (getHomeDirectory)
 import           System.FilePath     ((</>))
-import           System.Process      (readProcess)
+import           System.Process      (readProcessWithExitCode)
 import           Text.Regex.Posix    ((=~))
 import           Types.Reminder
 
@@ -70,7 +70,11 @@ staggeredReminders r = sequence $ foldr step [] SremConfig.intervals
 getEmacsOutput :: IO String
 getEmacsOutput = do
     args <- makeEmacsArgs <$> getHomeDirectory
-    readProcess "emacs" args ""
+
+    -- use 'readProcessWithExitCode' over 'readProcess' to avoid
+    -- printing Emacs startup verbose stderr to the user
+    (_, output, _) <- readProcessWithExitCode "emacs" args ""
+    return output
 
 makeEmacsArgs      :: String -> [String]
 makeEmacsArgs home = [ "-batch"
