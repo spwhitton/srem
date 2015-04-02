@@ -28,6 +28,8 @@ module Control.SremConfig ( getCacheDirectory
 import System.Directory (getHomeDirectory)
 import System.FilePath ((</>))
 
+-- TODO: check $XDG_CACHE or whatever environment variable before defaulting to ~/.cache
+
 getCacheDirectory :: IO FilePath
 getCacheDirectory = getHomeDirectory >>= \h ->
     return $ h </> ".cache" </> "srem"
