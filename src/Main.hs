@@ -26,12 +26,15 @@ import           Control.Monad       (mapM_)
 import           Data.List           (intercalate)
 import           System.Environment  (getArgs)
 
+import           Data.List.Split     (oneOf, split)
 import           Data.Time.Calendar
 import           Data.Time.Format
 import           Data.Time.LocalTime
+import           Data.Tuple.Sequence (sequenceT)
 import           System.Locale       (defaultTimeLocale)
 import           Text.Regex.Posix    ((=~))
 
+import           Data.Maybe.Read
 import           Types.Reminder
 import           Utility.EventCache
 import           Utility.Notify
@@ -58,11 +61,16 @@ cmdLineReminder (exp:textParts)
     | otherwise             = Nothing
   where
     text                    = intercalate " " textParts
-    relativeRegExp          = "[0-9]+[mh]"
+    relativeRegExp          = "[0-9mh]+[mh]"
     absoluteRegExp          = "[0-9]{1,2}(:[0-9][0-9])?(am|pm)?"
 
-parseRelativeTime     :: String -> Maybe (Hour, Minute)
-parseRelativeTime exp = undefined
+parseRelativeTime :: String -> Maybe (Hour, Minute)
+parseRelativeTime exp =
+    case (split . oneOf) "mh" exp of
+        [h, "h", m, "m", ""] -> sequenceT (readMaybe h, readMaybe m)
+        [h, "h", ""]         -> sequenceT (readMaybe h, Just 0)
+        [m, "m", ""]         -> sequenceT (Just 0,      readMaybe m)
+        _                    -> Nothing
 
 parseAbsoluteTime     :: String -> Maybe (Hour, Minute)
 parseAbsoluteTime exp = let formatString =
