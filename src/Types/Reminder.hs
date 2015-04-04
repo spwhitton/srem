@@ -57,7 +57,7 @@ makeReminder'       :: Hour           -- ^ Clock hour-hand time of event
                     -> Minute         -- ^ Clock minute-hand time of the event
                     -> String         -- ^ Event description
                     -> Maybe Reminder -- ^ Maybe a reminder
-makeReminder' h m s = if   h `elem` [0..23] && m `elem` [0..59]
+makeReminder' h m s = if   h `elem` [0..23] && m `elem` [0..59] && (not . null) s
                       then return $ Reminder h m s
                       else fail "invalid reminder"
 
