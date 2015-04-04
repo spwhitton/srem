@@ -78,6 +78,7 @@ parseRelativeTime exp =
         [h, "h", m, "m", ""] -> sequenceT (readMaybe h, readMaybe m)
         [h, "h", ""]         -> sequenceT (readMaybe h, Just 0)
         [m, "m", ""]         -> sequenceT (Just 0,      readMaybe m)
+        [m]                  -> sequenceT (Just 0,      readMaybe m)
         _                    -> Nothing
 
 parseAbsoluteTime     :: String -> Maybe (Hour, Minute)
