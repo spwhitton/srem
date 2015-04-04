@@ -30,7 +30,7 @@ import           Data.Function       (on)
 import           Data.List           (sortBy)
 import           Data.Time.Clock     (UTCTime)
 import           System.Directory    (getDirectoryContents, getHomeDirectory,
-                                      getModificationTime)
+                                      getModificationTime, doesDirectoryExist)
 import           System.Environment  (getEnvironment, setEnv)
 import           System.FilePath     ((</>))
 import           System.Process      (readProcess, runCommand)
@@ -73,12 +73,27 @@ getDBusUserAddress = do
     addr <- readFile socketFile
     return (return addr >>= parseAddress)
 
--- | Return the newest file in a directory, or the empty string if
--- passed a file or empty directory.
+-- | Return the full path to the newest file in a directory, or the
+-- empty string if passed a file or empty directory or a path that
+-- doesn't exist.
 getNewestRealFile     :: FilePath -> IO FilePath
 getNewestRealFile dir = do
-
-    undefined
+    doesDirectoryExist dir >>= \exists ->
+        if exists then do
+            contents <- map (dir </>). filter (`notElem` [".", ".."])
+                        <$> getDirectoryContents dir
+            contentsWithModTimes <- foldM step [] contents
+            let sorted = sortBy
+                         (flip $ (compare `on` snd))
+                         contentsWithModTimes
+            if null sorted
+                then return ""
+                else return . fst . head $ sorted
+        else return ""
+  where
+    step pairs file = do
+        fileModTime <- getModificationTime file
+        return $ (file, fileModTime) : pairs
 
 -- newestFile    :: [FilePath] -> IO FilePath
 -- newestFile xs = do
