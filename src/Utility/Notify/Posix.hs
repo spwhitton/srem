@@ -65,26 +65,32 @@ getDBusUserAddress :: IO (Maybe Address)
 getDBusUserAddress = do
     -- TODO: catch various IO exceptions!
     dir <- (</>) <$> getHomeDirectory <*> pure (".dbus" </> "session-bus")
-    contents <- getDirectoryContents dir
-    let realContents = filter (`notElem` [".", ".."]) contents
-    socketFile <- return realContents
-                  >>= mapM (return . ((dir ++ "/")  ++))
-                  >>= newestFile
-
+    socketFile <- getNewestRealFile dir
+    -- let realContents = filter (`notElem` [".", ".."]) contents
+    -- socketFile <- return realContents
+    --               >>= mapM (return . ((dir ++ "/")  ++))
+    --               >>= newestFile
     addr <- readFile socketFile
     return (return addr >>= parseAddress)
 
-newestFile    :: [FilePath] -> IO FilePath
-newestFile xs = do
-    modTimes <- getModTimes xs
-    let sorted = sortBy (compare `on` snd) modTimes
-    return $ (fst . head) sorted
+-- | Return the newest file in a directory, or the empty string if
+-- passed a file or empty directory.
+getNewestRealFile     :: FilePath -> IO FilePath
+getNewestRealFile dir = do
 
--- expects absolute paths
-getModTimes    :: [FilePath] -> IO [(FilePath, UTCTime)]
-getModTimes xs = do
-    modTimes <- foldM (\ts f -> do; modTime <- getModificationTime f; return (ts ++ [modTime])) [] xs
-    return $ zip xs modTimes
+    undefined
+
+-- newestFile    :: [FilePath] -> IO FilePath
+-- newestFile xs = do
+--     modTimes <- getModTimes xs
+--     let sorted = sortBy (compare `on` snd) modTimes
+--     return $ (fst . head) sorted
+
+-- -- expects absolute paths
+-- getModTimes    :: [FilePath] -> IO [(FilePath, UTCTime)]
+-- getModTimes xs = do
+--     modTimes <- foldM (\ts f -> do; modTime <- getModificationTime f; return (ts ++ [modTime])) [] xs
+--     return $ zip xs modTimes
 
 -- fixDBusEnvironment :: IO ()
 -- fixDBusEnvironment = do
