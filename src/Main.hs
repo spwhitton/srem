@@ -41,7 +41,7 @@ doCron                  = do
     let nowRemsFilter r = getReminderHour r == h
                           && getReminderMinute r == m
         nowRems         = filter nowRemsFilter rems
-    mapM_ sendNotification nowRems
+    sendNotifications nowRems
 
 appendUserReminder   :: Reminder -> IO ()
 appendUserReminder r = do

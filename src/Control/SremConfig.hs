@@ -23,6 +23,8 @@
 
 module Control.SremConfig ( getCacheDirectory
                           , intervals
+                          , notificationSound
+                          -- , alwaysRunningInX11Process
                           ) where
 
 import System.Directory (getHomeDirectory)
@@ -34,5 +36,12 @@ getCacheDirectory :: IO FilePath
 getCacheDirectory = getHomeDirectory >>= \h ->
     return $ h </> ".cache" </> "srem"
 
+notificationSound :: IO FilePath
+notificationSound = getHomeDirectory >>= \h ->
+    return $ h </> "lib" </> "annex" </> "doc" </> "sounds" </> "beep.wav"
+
 intervals :: [Int]
 intervals = [60, 15, 0]
+
+-- alwaysRunningInX11Process :: String
+-- alwaysRunningInX11Process = "xbindkeys"
