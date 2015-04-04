@@ -44,11 +44,11 @@ import           Data.List.Split     (splitOn)
 import           Types.Reminder
 
 sendNotifications   :: [Reminder] -> IO ()
-sendNotifications rems = do
-    maybeClient <- getDBusUserAddress
-    let client = undefined
-
-    mapM_ (sendNotification client) rems
+sendNotifications rems =
+    getDBusUserAddress >>=
+    maybe (return ()) (\address -> do
+                            client <- connect address
+                            mapM_ (sendNotification client) rems)
 
 sendNotification       :: Client -> Reminder -> IO Notification
 sendNotification c rem = do
@@ -70,8 +70,11 @@ getDBusUserAddress = do
     -- socketFile <- return realContents
     --               >>= mapM (return . ((dir ++ "/")  ++))
     --               >>= newestFile
-    addr <- readFile socketFile
+    addr <- dropWhile (/= 'u') . head . filter findSocketLine . lines
+            <$> readFile socketFile
     return (return addr >>= parseAddress)
+  where
+    findSocketLine line = takeWhile (/= '=') line == "DBUS_SESSION_BUS_ADDRESS"
 
 -- | Return the full path to the newest file in a directory, or the
 -- empty string if passed a file or empty directory or a path that
