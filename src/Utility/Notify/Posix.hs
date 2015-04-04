@@ -1,11 +1,41 @@
-module Utility.Notify (sendNotifications) where
+{-
 
-import           Control.Applicative ((<$>))
+    srem --- Timed reminders as notifications
+
+    Copyright (C) 2015  Sean Whitton
+
+    This file is part of srem.
+
+    srem is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    srem is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with srem.  If not, see <http://www.gnu.org/licenses/>.
+
+-}
+
+module Utility.Notify.Posix (sendNotifications) where
+
+import           Control.Applicative (pure, (<$>), (<*>))
 import           Control.Exception   (catch)
+import           Control.Monad       (filterM, foldM, liftM, mapM)
+import           Data.Function       (on)
+import           Data.List           (sortBy)
+import           Data.Time.Clock     (UTCTime)
+import           System.Directory    (getDirectoryContents, getHomeDirectory,
+                                      getModificationTime)
 import           System.Environment  (getEnvironment, setEnv)
+import           System.FilePath     ((</>))
 import           System.Process      (readProcess, runCommand)
 
-import           DBus                (Address)
+import           DBus                (Address, parseAddress)
 import           DBus.Client         (Client, ClientError, connect)
 import           DBus.Notify
 
@@ -15,8 +45,9 @@ import           Types.Reminder
 
 sendNotifications   :: [Reminder] -> IO ()
 sendNotifications rems = do
-    client <- getDBusUserAddress >>= connect
-              -- `catch` ((\_ -> return ()) :: ClientError -> IO Client) -- TODO
+    maybeClient <- getDBusUserAddress
+    let client = undefined
+
     mapM_ (sendNotification client) rems
 
 sendNotification       :: Client -> Reminder -> IO Notification
@@ -30,8 +61,30 @@ sendNotification c rem = do
                                             , expiry  = Milliseconds 10000
                                             , hints   = [ SoundFile soundFile ]}
 
-getDBusUserAddress :: IO Address
-getDBusUserAddress = undefined
+getDBusUserAddress :: IO (Maybe Address)
+getDBusUserAddress = do
+    -- TODO: catch various IO exceptions!
+    dir <- (</>) <$> getHomeDirectory <*> pure (".dbus" </> "session-bus")
+    contents <- getDirectoryContents dir
+    let realContents = filter (`notElem` [".", ".."]) contents
+    socketFile <- return realContents
+                  >>= mapM (return . ((dir ++ "/")  ++))
+                  >>= newestFile
+
+    addr <- readFile socketFile
+    return (return addr >>= parseAddress)
+
+newestFile    :: [FilePath] -> IO FilePath
+newestFile xs = do
+    modTimes <- getModTimes xs
+    let sorted = sortBy (compare `on` snd) modTimes
+    return $ (fst . head) sorted
+
+-- expects absolute paths
+getModTimes    :: [FilePath] -> IO [(FilePath, UTCTime)]
+getModTimes xs = do
+    modTimes <- foldM (\ts f -> do; modTime <- getModificationTime f; return (ts ++ [modTime])) [] xs
+    return $ zip xs modTimes
 
 -- fixDBusEnvironment :: IO ()
 -- fixDBusEnvironment = do
