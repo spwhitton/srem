@@ -26,19 +26,25 @@ module Utility.EventCache ( purgeOldEventCaches
                           , refreshEmacsEventCache
                           , readEmacsEventCache
                           , readManualEventCache
+                          , getTimetableReminders
                           ) where
 
 import           Control.Applicative ((<$>))
 import           Control.Exception   (IOException, catch)
 import           Control.Monad       (filterM, forM_, when)
 import qualified Control.SremConfig  as SremConfig
-import           Data.List.Split     (splitOn, splitOneOf)
+import           Data.Char           (toLower)
 import           Data.Maybe.Read
 import           Data.Time.Calendar
+import           Data.Time.Format
 import           Data.Time.LocalTime
 import           System.Directory    (createDirectoryIfMissing, doesFileExist,
                                       getDirectoryContents, removeFile)
 import           System.FilePath     ((</>))
+import           System.Locale       (defaultTimeLocale)
+
+import           Data.List.Split     (splitOn, splitOneOf)
+
 import           Types.Reminder
 import           Utility.Emacs
 
@@ -91,6 +97,17 @@ readManualEventCache = do
     let path = dir </> "manual_" ++ date ++ ".csv"
     doesFileExist path >>= \alreadyThere ->
         if   alreadyThere
+        then readEventsCSV path
+        else return []
+
+getTimetableReminders :: IO [Reminder]
+getTimetableReminders = do
+    dayOfWeek <- map toLower . formatTime defaultTimeLocale "%A"
+                 . localDay . zonedTimeToLocalTime <$> getZonedTime
+    dir <- SremConfig.getCacheDirectory
+    let path = dir </> dayOfWeek ++ ".csv"
+    exists <- doesFileExist path
+    if exists
         then readEventsCSV path
         else return []
 
