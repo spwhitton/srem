@@ -33,7 +33,7 @@ import           System.Directory    (getDirectoryContents, getHomeDirectory,
                                       getModificationTime, doesDirectoryExist)
 import           System.Environment  (getEnvironment, setEnv)
 import           System.FilePath     ((</>))
-import           System.Process      (readProcess, runCommand)
+import           System.Process      (readProcessWithExitCode)
 
 import           DBus                (Address, parseAddress)
 import           DBus.Client         (Client, ClientError, connect)
@@ -50,16 +50,17 @@ sendNotifications rems =
                             client <- connect address
                             mapM_ (sendNotification client) rems)
 
-sendNotification       :: Client -> Reminder -> IO Notification
+sendNotification       :: Client -> Reminder -> IO ()
 sendNotification c rem = do
     let (title:content) = words . getReminderText $ rem
     soundFile <- SremConfig.notificationSound
-    runCommand $ "aplay " ++ soundFile
     notify c blankNote { appName = "srem"
                                             , body    = (Just . Text . unwords) content
                                             , summary = title
                                             , expiry  = Milliseconds 10000
                                             , hints   = [ SoundFile soundFile ]}
+    (_, _, _) <- readProcessWithExitCode "aplay" [soundFile] ""
+    return ()
 
 getDBusUserAddress :: IO (Maybe Address)
 getDBusUserAddress = do
