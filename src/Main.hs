@@ -74,7 +74,7 @@ main = do
         else if length args == 1 && head args == "--refresh-emacs"
                 then refreshEmacsEventCache
              else cmdLineReminder args
-                  >>= maybe (error "srem: invalid input") appendUserReminder
+                  >>= maybe (error "invalid input") appendUserReminder
 
 localHMD :: IO (Hour, Minute, Day)
 localHMD = do
