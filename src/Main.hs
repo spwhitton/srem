@@ -36,6 +36,7 @@ import           Utility.Notify
 
 doCron                  :: IO ()
 doCron                  = do
+    purgeOldEventCaches
     rems      <- (++) <$> readEmacsEventCache <*> readManualEventCache
     (h, m, _) <- localHMD
     let nowRemsFilter r = getReminderHour r == h

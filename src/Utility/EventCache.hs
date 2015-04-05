@@ -48,12 +48,12 @@ import           Utility.Emacs
 
 purgeOldEventCaches :: IO ()
 purgeOldEventCaches = do
-    files <- (SremConfig.getCacheDirectory
-             >>= getDirectoryContents)
+    dir <- SremConfig.getCacheDirectory
+    files <- getDirectoryContents dir
              `catch` ((\_ -> return []) :: IOException -> IO [FilePath])
     today <- localDay . zonedTimeToLocalTime <$> getZonedTime
     forM_ files $ \file ->
-        when (fileIsOldCache today file) $ removeFile file
+         when (fileIsOldCache today file) $ removeFile (dir </> file)
 
 appendManualEventCache   :: Reminder -> Day -> IO ()
 appendManualEventCache r d = do
@@ -125,9 +125,9 @@ todaysCacheFileDateString = showGregorian . localDay . zonedTimeToLocalTime
 
 fileIsOldCache            :: Day -> FilePath -> Bool
 fileIsOldCache today file = length splitFile == 3
-                            && splitFile !! 1 `elem` ["manual", "emacs"]
-                            && (maybe False (< today) $ readDay $ splitFile !! 2)
-                            && splitFile !! 3 == "csv"
+                            && splitFile !! 0 `elem` ["manual", "emacs"]
+                            && (maybe False (< today) $ readDay $ splitFile !! 1)
+                            && splitFile !! 2 == "csv"
   where
     splitFile             = splitOneOf "_." file
 
