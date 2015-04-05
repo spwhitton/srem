@@ -24,13 +24,13 @@
 module Utility.Notify.Posix (sendNotifications) where
 
 import           Control.Applicative (pure, (<$>), (<*>))
-import           Control.Exception   (catch)
+import           Control.Exception   (try)
 import           Control.Monad       (filterM, foldM, liftM, mapM)
 import           Data.Function       (on)
 import           Data.List           (sortBy)
 import           Data.Time.Clock     (UTCTime)
-import           System.Directory    (getDirectoryContents, getHomeDirectory,
-                                      getModificationTime, doesDirectoryExist)
+import           System.Directory    (doesDirectoryExist, getDirectoryContents,
+                                      getHomeDirectory, getModificationTime)
 import           System.Environment  (getEnvironment, setEnv)
 import           System.FilePath     ((</>))
 import           System.Process      (readProcessWithExitCode)
@@ -38,6 +38,7 @@ import           System.Process      (readProcessWithExitCode)
 import           DBus                (Address, parseAddress)
 import           DBus.Client         (Client, ClientError, connect)
 import           DBus.Notify
+import           DBus.Socket         (SocketError)
 
 import qualified Control.SremConfig  as SremConfig
 import           Data.List.Split     (splitOn)
@@ -47,8 +48,8 @@ sendNotifications   :: [Reminder] -> IO ()
 sendNotifications rems =
     getDBusUserAddress >>=
     maybe (return ()) (\address -> do
-                            client <- connect address
-                            mapM_ (sendNotification client) rems)
+                            maybeClient <- (try $ connect address) :: IO (Either SocketError Client)
+                            either (\_ -> return ()) (\client -> mapM_ (sendNotification client) rems) maybeClient)
 
 sendNotification       :: Client -> Reminder -> IO ()
 sendNotification c rem = do
