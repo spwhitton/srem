@@ -10,6 +10,10 @@ category:            Text
 build-type:          Simple
 cabal-version:       >=1.10
 
+extra-source-files:  cbits
+-- extra-include-dirs:  /usr/include
+-- extra-lib-dirs:      /usr/lib/i386-linux-gnu
+
 executable srem
   main-is:             Main.hs
   build-depends:       base
@@ -26,3 +30,8 @@ executable srem
                      , dbus
   hs-source-dirs:      src
   default-language:    Haskell2010
+
+  -- TODO conditional on building on GNU/Linux
+  c-sources:         cbits/getIdleTime_posix.c
+  extra-libraries:   Xss
+  includes:          X11/extensions/scrnsaver.h

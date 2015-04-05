@@ -12,6 +12,10 @@ TODO
 
 TODO
 
+Debian packages required: libxss-dev
+
+Or maybe: nix-env -iA nixos.pkgs.xlibs.libXScrnSaver
+
 ## Installation
 
 TODO
