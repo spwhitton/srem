@@ -46,16 +46,20 @@ parseEmacsOutput = foldr step [] . drop 2 . lines
 parseLine              :: String -> Maybe [Reminder]
 parseLine line         = do
     when (not lineMatch) $ fail ""
-    let hStr:mStr:s:[] = drop 1 . concat $ lineMatchStrings
+    let hStr:mStr:sStr:[] = drop 1 . concat $ lineMatchStrings
     h <- readMaybe hStr
     m <- readMaybe mStr
+    let s = snip sStr
     staggeredReminders =<< makeReminder h m s
   where
     apptRegexp         = " ([0-9]{1,2}):([0-9][0-9])[-]{0,1}[0-9:]{0,5}[.]* (.*)$"
-    snipRegexp         = "[ ]{2,}:.*:*$"
+    snipRegexp         = "[ ]{1,}:.*:*$"
 
     lineMatch        = line =~ apptRegexp :: Bool
     lineMatchStrings = line =~ apptRegexp :: [[String]]
+
+    fst3 (x, _, _) = x
+    snip s = fst3 (s =~ snipRegexp :: (String, String, String))
 
 staggeredReminders   :: Reminder -> Maybe [Reminder]
 staggeredReminders r = sequence $ foldr step [] SremConfig.intervals
