@@ -6,7 +6,22 @@ TODO
 
 ## Usage
 
+### Setting reminders
+
 TODO
+
+### Receiving reminders
+
+#### On Microsoft Windows
+
+This command should set the scheduled task:
+
+    schtasks /Create /SC MINUTE /TN srem /TR "C:\path\to\srem.exe --cron"
+
+To get rid of the command prompt window that momentarily flashes up
+every time the command is run, open the scheduled tasks manager, find
+the srem task and open its properties, and select "Run whether user is
+logged on or not".
 
 ## Building
 
