@@ -104,6 +104,7 @@ getTimetableReminders :: IO [Reminder]
 getTimetableReminders = do
     dayOfWeek <- map toLower . formatTime defaultTimeLocale "%A"
                  . localDay . zonedTimeToLocalTime <$> getZonedTime
+    -- TODO: timetable CSV files shouldn't be in the cache directory as not reproducible
     dir <- SremConfig.getCacheDirectory
     let path = dir </> dayOfWeek ++ ".csv"
     exists <- doesFileExist path
