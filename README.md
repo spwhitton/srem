@@ -14,14 +14,15 @@ TODO
 
 #### On Microsoft Windows
 
-This command should set the scheduled task:
+This command should set the scheduled tasks:
 
     schtasks /Create /SC MINUTE /TN srem /TR "C:\path\to\srem.exe --cron"
+    schtasks /Create /SC HOURLY /MO 2 /TN srem-refresh /TR "C:\path\to\srem.exe --refresh-emacs"
 
 To get rid of the command prompt window that momentarily flashes up
-every time the command is run, open the scheduled tasks manager, find
-the srem task and open its properties, and select "Run whether user is
-logged on or not".
+every time the commands are run, open the scheduled tasks manager,
+find the srem tasks and open their properties, and select "Run whether
+user is logged on or not".
 
 ## Building
 
