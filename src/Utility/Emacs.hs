@@ -1,5 +1,6 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 {-
 

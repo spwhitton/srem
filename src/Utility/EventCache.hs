@@ -41,7 +41,7 @@ import           Data.Time.LocalTime
 import           System.Directory    (createDirectoryIfMissing, doesFileExist,
                                       getDirectoryContents, removeFile)
 import           System.FilePath     ((</>))
-import           System.Locale       (defaultTimeLocale)
+-- import           System.Locale       (defaultTimeLocale)
 
 import           Data.List.Split     (splitOn, splitOneOf)
 

@@ -35,7 +35,7 @@ import           Data.Time.Calendar
 import           Data.Time.Format
 import           Data.Time.LocalTime
 import           Data.Tuple.Sequence    (sequenceT)
-import           System.Locale          (defaultTimeLocale)
+-- import           System.Locale          (defaultTimeLocale)
 
 import           Data.Maybe.Read
 import           Types.Reminder
